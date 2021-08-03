@@ -8,16 +8,47 @@
 import SwiftUI
 
 struct ContentView: View {
-	@State private var assignmentItems = [
-		AssignmentItem(course: "Computer Science", description: "Description here", dueDate: Date()),
-		
-		AssignmentItem(course: "Computer Science", description: "Description 2 here", dueDate: Date()),
-		
-		AssignmentItem(course: "Computer Science test 2", description: "Description 3 here", dueDate: Date())
-	]
+	@ObservedObject var assignmentList = AssignmentList()
+	@State private var showingAddItemView = false
 	var body: some View {
-		Text("Hello, world!")
-			.padding()
+		ZStack {
+			NavigationView {
+				List {
+					ForEach(assignmentList.items) { item in
+						ZStack {
+							HStack {
+								VStack {
+									
+									Text(item.description)
+										.frame(alignment: .leading)
+									Text(item.course)
+										.bold()
+										.frame(alignment: .leading)
+								}
+								Spacer()
+								Text(item.dueDate, style: .date)
+							}
+						}
+					}
+					.onMove(perform: { indices, newOffset in
+						assignmentList.items.move(fromOffsets: indices, toOffset: newOffset)
+					})
+					.onDelete(perform: { indexSet in
+						assignmentList.items.remove(atOffsets: indexSet)
+					})
+					
+				}
+				.sheet(isPresented: $showingAddItemView, content: {
+						  AddItemView(assignmentList: assignmentList)
+					     })
+				.navigationBarTitle("Assigments", displayMode: .inline)
+				.navigationBarItems(leading: EditButton(),
+								    trailing: Button(action: {
+									 showingAddItemView = true}) {
+									 Image(systemName: "plus")
+					     })
+			}
+		}
 	}
 }
 
